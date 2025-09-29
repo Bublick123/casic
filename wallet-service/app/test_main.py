@@ -17,7 +17,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 # Фикстура для БД с 
 @pytest.fixture(scope="function")
 def db_session():
-    # Создаем таблицы ПЕРЕД каждым тестом
+    # Создаем таблицы ПЕРЕД каждым 
     Base.metadata.create_all(bind=engine)
     
     connection = engine.connect()
