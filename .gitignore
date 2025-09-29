@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+env/
+venv/
+ENV/
+*.sqlite3
+
+# Packages
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+*.whl
+
+# PyCharm / IDE
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+
+# Docker
+*.env
+docker-compose.override.yml
+docker-compose.override.yml
+**/docker-compose.override.yml
+**/Dockerfile
+**/docker-compose.override.yml
+**/docker-compose.override.yml
+**/docker-compose.override.yml
+*.pid
+
+# Migrations
+migrations/
+alembic/versions/
+
+# Strawberry / GraphQL cache
+*.db
+
+# Node / Frontend (если есть)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# OS
+.DS_Store
+Thumbs.db

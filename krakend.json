@@ -1,0 +1,27 @@
+{
+  "version": 3,
+  "port": 8080,
+  "extra_config": {
+    "github_com/devopsfaith/krakend-gologging": {
+      "level": "DEBUG",
+      "prefix": "[KRAKEND]",
+      "stdout": true
+    }
+  },
+  "endpoints": [
+    {
+      "endpoint": "/graphql",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_encoding": "no-op",
+      "backend": [
+        {
+          "url_pattern": "/graphql",
+          "host": ["http://wallet-service:8000"],
+          "disable_host_sanitize": true,
+          "encoding": "no-op"
+        }
+      ]
+    }
+  ]
+}

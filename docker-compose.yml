@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # Auth Database
+  auth-postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: casino_user
+      POSTGRES_PASSWORD: casino_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+    networks:
+      - casino-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U casino_user -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Auth Service
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql://casino_user:casino_password@auth-postgres:5432/auth_db
+      - SECRET_KEY=your-super-secret-key-here
+    depends_on:
+      auth-postgres:
+        condition: service_healthy
+    networks:
+      - casino-network
+
+  # Wallet Database
+  wallet-postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: wallet_db
+      POSTGRES_USER: casino_user
+      POSTGRES_PASSWORD: casino_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - wallet_postgres_data:/var/lib/postgresql/data
+    networks:
+      - casino-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U casino_user -d wallet_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Wallet Redis
+  wallet-redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - casino-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Wallet Service
+  wallet-service:
+    build: ./wallet-service
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql://casino_user:casino_password@wallet-postgres:5432/wallet_db
+      - REDIS_URL=redis://wallet-redis:6379/0
+      - AUTH_SERVICE_URL=http://auth-service:8000
+    depends_on:
+      wallet-postgres:
+        condition: service_healthy
+      wallet-redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - casino-network
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/ssl/certs  # Для SSL сертификатов
+    depends_on:
+      - krakend
+    networks:
+      - casino-network
+
+  # API Gateway промышленного уровня
+  krakend:
+   image: devopsfaith/krakend:2.6
+   ports:
+    - "8090:8080"
+   volumes:
+    - ./krakend.json:/etc/krakend/krakend.json
+   environment:
+    - SECRET_KEY=your-super-secret-key-here
+   depends_on:
+    - auth-service
+    - wallet-service
+   networks:
+    - casino-network
+  
+
+volumes:
+  auth_postgres_data:
+  wallet_postgres_data:
+  redis_data:
+
+networks:
+  casino-network:
+    driver: bridge
+
+
+
+  
