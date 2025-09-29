@@ -14,7 +14,7 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Фикстура для БД с созданием таблиц
+# Фикстура для БД с созданием 123
 @pytest.fixture(scope="function")
 def db_session():
     # Создаем таблицы ПЕРЕД каждым тестом
