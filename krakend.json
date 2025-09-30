@@ -37,13 +37,39 @@
       ]
     },
     {
-      "endpoint": "/auth/login", 
+      "endpoint": "/auth/login",
       "method": "POST",
       "input_headers": ["*"],
       "output_headers": ["*"],
       "backend": [
         {
           "url_pattern": "/login",
+          "host": ["http://auth-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth/verify",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/verify",
+          "host": ["http://auth-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth/users/me",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/users/me",
           "host": ["http://auth-service:8000"],
           "disable_host_sanitize": false
         }
@@ -67,6 +93,71 @@
         {
           "url_pattern": "/health",
           "host": ["http://wallet-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/roulette/games",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/roulette/games",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/roulette/games",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/roulette/games",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/roulette/games/{game_id}",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/roulette/games/{game_id}",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/roulette/games/{game_id}/bet",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/roulette/games/{game_id}/bet",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/roulette/test",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/roulette/test",
+          "host": ["http://game-service:8000"],
           "disable_host_sanitize": false
         }
       ]
