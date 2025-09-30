@@ -1,6 +1,7 @@
 {
   "version": 3,
   "port": 8080,
+  "timeout": "3s",
   "extra_config": {
     "github_com/devopsfaith/krakend-gologging": {
       "level": "DEBUG",
@@ -18,8 +19,55 @@
         {
           "url_pattern": "/graphql",
           "host": ["http://wallet-service:8000"],
-          "disable_host_sanitize": true,
-          "encoding": "no-op"
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth/register",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/register",
+          "host": ["http://auth-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/auth/login", 
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/login",
+          "host": ["http://auth-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/health",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/health",
+          "host": ["http://auth-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/test",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/health",
+          "host": ["http://wallet-service:8000"],
+          "disable_host_sanitize": false
         }
       ]
     }

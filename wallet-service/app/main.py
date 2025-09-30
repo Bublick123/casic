@@ -43,3 +43,11 @@ app.include_router(graphql_app, prefix="/graphql")
 @app.get("/")
 async def root():
     return {"message": "Wallet Service is running!"}
+#health_check
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "wallet"}
+
+@app.get("/__health")  
+async def health_check_compat():
+    return {"status": "healthy", "service": "wallet"}

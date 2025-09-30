@@ -449,7 +449,14 @@ async def jwks():
         }]
     })
 
+#Health_check
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "service": "auth"}
 
+@app.get("/__health")
+async def health_check_compat():
+    return {"status": "healthy", "service": "auth"}
 
 
 
