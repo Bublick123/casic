@@ -86,6 +86,7 @@ services:
         condition: service_started
     networks:
       - casino-network
+
   nginx:
     image: nginx:alpine
     ports:
@@ -101,29 +102,60 @@ services:
 
   # API Gateway промышленного уровня
   krakend:
-   image: devopsfaith/krakend:2.6
-   ports:
-    - "8090:8080"
-   volumes:
-    - ./krakend.json:/etc/krakend/krakend.json
-   environment:
-    - SECRET_KEY=your-super-secret-key-here
-   depends_on:
-    - auth-service
-    - wallet-service
-   networks:
-    - casino-network
-  
+    image: devopsfaith/krakend:2.6
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./krakend.json:/etc/krakend/krakend.json
+    environment:
+      - SECRET_KEY=your-super-secret-key-here
+    depends_on:
+      - auth-service
+      - wallet-service
+      - game-service
+    networks:
+      - casino-network
+
+  # Game Database  ← ОТСТУП ИСПРАВЛЕН
+  game-postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: game_db
+      POSTGRES_USER: casino_user
+      POSTGRES_PASSWORD: casino_password
+    ports:
+      - "5434:5432"
+    volumes:
+      - game_postgres_data:/var/lib/postgresql/data
+    networks:
+      - casino-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U casino_user -d game_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Game Service  ← ОТСТУП ИСПРАВЛЕН
+  game-service:
+    build: ./game-service
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_URL=postgresql://casino_user:casino_password@game-postgres:5432/game_db
+    depends_on:
+      game-postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - casino-network
 
 volumes:
   auth_postgres_data:
   wallet_postgres_data:
+  game_postgres_data:
   redis_data:
 
 networks:
   casino-network:
     driver: bridge
-
-
-
-  
