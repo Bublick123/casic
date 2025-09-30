@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List, Optional, Dict  # ← ДОБАВЬ Dict СЮДА!
 from datetime import datetime
 import random
 import httpx
@@ -40,7 +40,20 @@ class RouletteGameResponse(BaseModel):
 
 # ===== РОУТЕР =====
 router = APIRouter(prefix="/roulette", tags=["roulette"])
-
+PAYOUT_MULTIPLIERS = {
+    "straight": 35,
+    "split": 17, 
+    "street": 11,
+    "corner": 8,
+    "red": 2,
+    "black": 2,
+    "even": 2,
+    "odd": 2,
+    "low": 2,
+    "high": 2,
+    "dozen": 3,
+    "column": 3
+}
 # Менеджер игр
 game_manager = GameManager()
 WALLET_SERVICE_URL = "http://wallet-service:8000"
@@ -143,7 +156,7 @@ async def place_bet(
         bet_type=bet_type_enum,
         numbers=bet_data.numbers,
         amount=bet_data.amount,
-        payout_multiplier=2.0  # Простой множитель для теста
+        payout_multiplier = PAYOUT_MULTIPLIERS.get(bet_data.bet_type, 1.0)
     )
     
     db.add(bet)
@@ -206,6 +219,114 @@ async def get_active_games_fixed(db: Session = Depends(get_db)):
         "count": len(game_list)
     }
 
+@router.post("/games/{game_id}/spin")
+async def spin_roulette(
+    game_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user_id)
+):
+    """Крутит рулетку, определяет победителя и выплачивает выигрыши"""
+    from .database import RouletteGame, RouletteBet, RouletteBetType, RouletteGameStatus
+    
+    # Находим игру
+    game = db.query(RouletteGame).filter(RouletteGame.id == game_id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    # Проверяем что игра еще не завершена
+    if game.status == RouletteGameStatus.FINISHED:
+        raise HTTPException(status_code=400, detail="Game already finished")
+    
+    # Крутим рулетку - генерируем выигрышное число
+    winning_number = random.randint(0, 36)
+    winning_color = "green" if winning_number == 0 else "red" if winning_number in [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36] else "black"
+    
+    # Обновляем игру - используем Enum, а не строку!
+    game.winning_number = winning_number
+    game.winning_color = winning_color
+    game.status = RouletteGameStatus.FINISHED  # ← ИСПОЛЬЗУЕМ ENUM!
+    
+    # Находим все ставки для этой игры
+    bets = db.query(RouletteBet).filter(RouletteBet.game_id == game_id).all()
+    
+    # Обрабатываем ставки и выплачиваем выигрыши
+    total_payout = 0
+    winning_bets = []
+    
+    for bet in bets:
+        is_winner = False
+        payout_amount = 0
+        
+        # Проверяем выиграла ли ставка
+        if bet.bet_type == RouletteBetType.STRAIGHT:
+            is_winner = winning_number in (bet.numbers or [])
+            payout_amount = bet.amount * 35 if is_winner else 0
+            
+        elif bet.bet_type == RouletteBetType.RED:
+            is_winner = winning_color == "red"
+            payout_amount = bet.amount * 2 if is_winner else 0
+            
+        elif bet.bet_type == RouletteBetType.BLACK:
+            is_winner = winning_color == "black" 
+            payout_amount = bet.amount * 2 if is_winner else 0
+            
+        elif bet.bet_type == RouletteBetType.EVEN:
+            is_winner = winning_number % 2 == 0 and winning_number != 0
+            payout_amount = bet.amount * 2 if is_winner else 0
+            
+        elif bet.bet_type == RouletteBetType.ODD:
+            is_winner = winning_number % 2 == 1
+            payout_amount = bet.amount * 2 if is_winner else 0
+            
+        # Обновляем ставку
+        bet.is_winner = is_winner
+        bet.payout_amount = payout_amount
+        
+        if is_winner:
+            total_payout += payout_amount
+            winning_bets.append({
+                "id": bet.id,
+                "user_id": bet.user_id,
+                "amount": float(bet.amount),
+                "payout": float(payout_amount),
+                "bet_type": bet.bet_type.value
+            })
+            
+            # Выплачиваем выигрыш на кошелек
+            async with httpx.AsyncClient() as client:
+                try:
+                    wallet_response = await client.post(
+                        f"{WALLET_SERVICE_URL}/graphql",
+                        json={
+                            "query": f"""
+                            mutation {{
+                                createTransaction(type: "win", amount: {payout_amount}) {{
+                                    ... on TransactionSuccess {{
+                                        transaction {{ id amount }}
+                                    }}
+                                    ... on TransactionError {{
+                                        message
+                                    }}
+                                }}
+                            }}
+                            """
+                        },
+                        headers={"Authorization": f"Bearer {bet.user_id}"}
+                    )
+                    print(f"Payout successful for user {bet.user_id}: {payout_amount}") 
+                except Exception as e:
+                    print(f"Error processing payout for user {bet.user_id}: {str(e)}")
+    
+    db.commit()
+    
+    return {
+        "success": True,
+        "winning_number": winning_number,
+        "winning_color": winning_color,
+        "total_payout": float(total_payout),
+        "winning_bets": winning_bets,
+        "message": f"Roulette spun! Winning number: {winning_number} ({winning_color})"
+    }
 @router.get("/test")
 async def roulette_test():
     return {"message": "Roulette is working!"}

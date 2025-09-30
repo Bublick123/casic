@@ -150,6 +150,19 @@
       ]
     },
     {
+      "endpoint": "/games/roulette/games/{game_id}/spin",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/roulette/games/{game_id}/spin",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
       "endpoint": "/games/roulette/test",
       "method": "GET",
       "input_headers": ["*"],
