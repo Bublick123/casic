@@ -62,6 +62,59 @@ class RouletteBet(Base):
     is_winner = Column(Boolean, nullable=True)
     payout_amount = Column(Float, nullable=True)
 
+#Слоты
+class SlotSymbol(enum.Enum):
+    CHERRY = "cherry"
+    LEMON = "lemon" 
+    ORANGE = "orange"
+    PLUM = "plum"
+    BELL = "bell"
+    SEVEN = "seven"
+
+class SlotGame(Base):
+    __tablename__ = "slot_games"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    bet_amount = Column(Float)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    reel1 = Column(SQLEnum(SlotSymbol))  # Символ на первом барабане
+    reel2 = Column(SQLEnum(SlotSymbol))  
+    reel3 = Column(SQLEnum(SlotSymbol))
+    win_amount = Column(Float, default=0.0)
+    payout_multiplier = Column(Float, default=0.0)
+    is_winner = Column(Boolean, default=False)
+#blackjack
+# Добавляем в существующий database.py после моделей слотов
+
+class BlackjackGameStatus(enum.Enum):
+    WAITING = "waiting"
+    PLAYER_TURN = "player_turn"
+    DEALER_TURN = "dealer_turn"
+    FINISHED = "finished"
+
+class BlackjackGame(Base):
+    __tablename__ = "blackjack_games"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    bet_amount = Column(Float)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    status = Column(SQLEnum(BlackjackGameStatus), default=BlackjackGameStatus.WAITING)
+    
+    # Карты игрока (JSON список)
+    player_cards = Column(JSON)
+    player_score = Column(Integer, default=0)
+    
+    # Карты дилера
+    dealer_cards = Column(JSON) 
+    dealer_score = Column(Integer, default=0)
+    
+    # Результат
+    win_amount = Column(Float, default=0.0)
+    is_winner = Column(Boolean, default=False)
+    is_push = Column(Boolean, default=False)  # Ничья
+
 def get_db():
     db = SessionLocal()
     try:
