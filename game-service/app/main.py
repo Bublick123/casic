@@ -22,9 +22,16 @@ async def health_check():
 async def root():
     return {"message": "Game Service is running"}
 
-# Простой импорт роутера
+# Простой импорт роутера 
+# Рулетка
 from .roulette import router as roulette_router
 app.include_router(roulette_router)
+# Слоты
+from .slots import router as slots_router 
+app.include_router(slots_router) 
+#БлэкДжек
+from .blackjack import router as blackjack_router
+app.include_router(blackjack_router)
 
 if __name__ == "__main__":
     import uvicorn

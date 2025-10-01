@@ -174,6 +174,97 @@
           "disable_host_sanitize": false
         }
       ]
+    },
+    {
+      "endpoint": "/games/slots/spin",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/slots/spin",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/slots/history",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/slots/history",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/slots/test",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/slots/test",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/blackjack/start",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/blackjack/start",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/blackjack/{game_id}/action",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/blackjack/{game_id}/action",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/blackjack/{game_id}",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/blackjack/{game_id}",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/games/blackjack/test",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/blackjack/test",
+          "host": ["http://game-service:8000"],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ]
 }
