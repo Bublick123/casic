@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException,Header
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict  # ← ДОБАВЬ Dict СЮДА!
 from datetime import datetime
@@ -130,7 +130,9 @@ async def place_bet(
     game_id: int,
     bet_data: RouletteBetPlace,
     db: Session = Depends(get_db),
-    user_id: int = Depends(get_current_user_id)
+    user_id: int = Depends(get_current_user_id),
+    # 🔥 ДОБАВЬТЕ ЭТОТ ПАРАМЕТР 🔥
+    authorization: str = Header(..., alias="Authorization")
 ):
     """Размещает ставку в игре"""
     from .database import RouletteGame, RouletteBet, RouletteBetType
@@ -139,9 +141,38 @@ async def place_bet(
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
-    # Простая валидация
     if bet_data.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be positive")
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            wallet_response = await client.post(
+                "http://wallet-service:8000/graphql",
+                json={
+                    "query": f"""
+                    mutation {{
+                        createTransaction(type: "bet", amount: {bet_data.amount}) {{
+                            ... on TransactionSuccess {{
+                                transaction {{ id amount }}
+                            }}
+                            ... on TransactionError {{
+                                message
+                            }}
+                        }}
+                    }}
+                    """
+                },
+                # 🔥 ПЕРЕДАВАЙТЕ ОРИГИНАЛЬНЫЙ Authorization header 🔥
+                headers={"Authorization": authorization}
+            )
+            
+            wallet_data = wallet_response.json()
+            if "errors" in wallet_data:
+                error_msg = wallet_data["errors"][0]["message"] if "errors" in wallet_data else "Wallet error"
+                raise HTTPException(status_code=400, detail=f"Bet failed: {error_msg}")
+                
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Wallet service error: {str(e)}")
     
     # Конвертируем строку в Enum для сохранения в БД
     try:
@@ -167,7 +198,7 @@ async def place_bet(
     return RouletteBetResponse(
         id=bet.id,
         game_id=bet.game_id,
-        bet_type=bet.bet_type.value,  # ← .value ДЛЯ СТРОКИ!
+        bet_type=bet.bet_type.value,
         numbers=bet.numbers or [],
         amount=bet.amount or 0.0,
         payout_multiplier=bet.payout_multiplier or 1.0,
@@ -175,7 +206,6 @@ async def place_bet(
         is_winner=bet.is_winner,
         payout_amount=bet.payout_amount
     )
-
 @router.get("/games")
 async def get_active_games_fixed(db: Session = Depends(get_db)):
     """Получает список активных игр - исправленная версия для KrakenD"""
