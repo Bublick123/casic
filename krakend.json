@@ -265,6 +265,56 @@
           "disable_host_sanitize": false
         }
       ]
+    },
+    {
+      "endpoint": "/analytics/games/stats",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/analytics/games/stats",
+          "host": ["http://analytics-service:8004"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/analytics/users/{user_id}/stats",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/analytics/users/{user_id}/stats",
+          "host": ["http://analytics-service:8004"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/analytics/events/game",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/analytics/events/game",
+          "host": ["http://analytics-service:8004"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/analytics/health",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/analytics/health",
+          "host": ["http://analytics-service:8004"],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ]
 }

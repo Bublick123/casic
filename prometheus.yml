@@ -1,0 +1,36 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'analytics-service'
+    static_configs:
+      - targets: ['analytics-service:8004']
+    metrics_path: /analytics/metrics
+    scrape_interval: 10s
+
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:8000']
+    metrics_path: /health
+    scrape_interval: 30s
+
+  - job_name: 'wallet-service'
+    static_configs:
+      - targets: ['wallet-service:8000'] 
+    metrics_path: /health
+    scrape_interval: 30s
+
+  - job_name: 'game-service'
+    static_configs:
+      - targets: ['game-service:8000']
+    metrics_path: /health
+    scrape_interval: 30s
