@@ -16,6 +16,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 # МОДЕЛИ БД
+#Рулетка
 class RouletteGameStatus(enum.Enum):
     WAITING = "waiting"
     ACCEPTING_BETS = "accepting_bets"
@@ -85,7 +86,7 @@ class SlotGame(Base):
     payout_multiplier = Column(Float, default=0.0)
     is_winner = Column(Boolean, default=False)
 #blackjack
-# Добавляем в существующий database.py после моделей слотов
+
 
 class BlackjackGameStatus(enum.Enum):
     WAITING = "waiting"

@@ -79,7 +79,7 @@ async def spin_slots(
                 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Wallet service error: {str(e)}")
-    
+
     # 3. Генерируем случайные символы
     symbols = list(SlotSymbol)
     reel1 = random.choice(symbols)
@@ -132,8 +132,40 @@ async def spin_slots(
     db.add(slot_game)
     db.commit()
     db.refresh(slot_game)
+
+    # 7. ОТПРАВЛЯЕМ СОБЫТИЯ В ANALYTICS (ПОСЛЕ СОХРАНЕНИЯ В БД!)
+    try:
+        async with httpx.AsyncClient() as client:
+            # Трекаем ставку
+            await client.post(
+                "http://analytics-service:8004/analytics/events/game", 
+                json={
+                    "type": "bet",
+                    "game_type": "slots",
+                    "user_id": user_id, 
+                    "game_id": slot_game.id,  # Теперь slot_game определена!
+                    "amount": spin_data.bet_amount
+                },
+                timeout=2.0
+            )
+            
+            # Если выиграли - трекаем выигрыш
+            if is_winner:
+                await client.post(
+                    "http://analytics-service:8004/analytics/events/game",
+                    json={
+                        "type": "win",
+                        "game_type": "slots",
+                        "user_id": user_id,
+                        "game_id": slot_game.id, 
+                        "amount": win_amount
+                    },
+                    timeout=2.0
+                )
+    except Exception as e:
+        print(f"Analytics tracking failed: {str(e)}")
     
-    # 7. Возвращаем результат
+    # 8. Возвращаем результат
     return SlotSpinResponse(
         id=slot_game.id,
         user_id=slot_game.user_id,
@@ -146,7 +178,6 @@ async def spin_slots(
         is_winner=slot_game.is_winner,
         created_at=slot_game.created_at
     )
-
 @router.get("/history")
 async def get_slots_history(
     db: Session = Depends(get_db),

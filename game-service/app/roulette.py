@@ -131,7 +131,6 @@ async def place_bet(
     bet_data: RouletteBetPlace,
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id),
-    # 🔥 ДОБАВЬТЕ ЭТОТ ПАРАМЕТР 🔥
     authorization: str = Header(..., alias="Authorization")
 ):
     """Размещает ставку в игре"""
@@ -144,6 +143,7 @@ async def place_bet(
     if bet_data.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be positive")
     
+    # 1. Снимаем деньги через Wallet Service
     async with httpx.AsyncClient() as client:
         try:
             wallet_response = await client.post(
@@ -162,7 +162,6 @@ async def place_bet(
                     }}
                     """
                 },
-                # 🔥 ПЕРЕДАВАЙТЕ ОРИГИНАЛЬНЫЙ Authorization header 🔥
                 headers={"Authorization": authorization}
             )
             
@@ -173,14 +172,31 @@ async def place_bet(
                 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Wallet service error: {str(e)}")
-    
-    # Конвертируем строку в Enum для сохранения в БД
+
+    # 2. Отправляем событие в Analytics Service (ОТДЕЛЬНЫЙ БЛОК!)
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                "http://analytics-service:8004/analytics/events/game",
+                json={
+                    "type": "bet",
+                    "game_type": "roulette", 
+                    "user_id": user_id,
+                    "game_id": game_id,
+                    "amount": bet_data.amount
+                },
+                timeout=2.0  # Таймаут чтобы не блокировать основной flow
+            )
+    except Exception as e:
+        print(f"Analytics tracking failed: {str(e)}")
+        # НЕ ПОДНИМАЕМ ОШИБКУ - аналитика не должна ломать основную функциональность
+
+    # 3. Создаем ставку в БД
     try:
         bet_type_enum = RouletteBetType(bet_data.bet_type)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid bet type")
     
-    # Создаем ставку в БД
     bet = RouletteBet(
         game_id=game_id,
         user_id=user_id,
@@ -194,7 +210,6 @@ async def place_bet(
     db.commit()
     db.refresh(bet)
     
-    # Конвертируем обратно в строку для ответа
     return RouletteBetResponse(
         id=bet.id,
         game_id=bet.game_id,

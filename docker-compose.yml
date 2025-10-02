@@ -116,7 +116,7 @@ services:
     networks:
       - casino-network
 
-  # Game Database  ← ОТСТУП ИСПРАВЛЕН
+  # Game Database  
   game-postgres:
     image: postgres:13
     environment:
@@ -135,7 +135,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Game Service  ← ОТСТУП ИСПРАВЛЕН
+  # Game Service 
   game-service:
     build: ./game-service
     ports:
@@ -149,12 +149,75 @@ services:
         condition: service_started
     networks:
       - casino-network
+    # Analytics Database
+  analytics-postgres:
+   image: postgres:13
+   environment:
+     POSTGRES_DB: analytics_db
+     POSTGRES_USER: casino_user
+     POSTGRES_PASSWORD: casino_password
+   ports:
+     - "5435:5432"
+   volumes:
+     - analytics_postgres_data:/var/lib/postgresql/data
+   networks:
+     - casino-network
+   healthcheck:
+     test: ["CMD-SHELL", "pg_isready -U casino_user -d analytics_db"]
+     interval: 10s
+     timeout: 5s
+     retries: 5    
+  analytics-service:
+   build: ./analytics-service
+   ports:
+     - "8004:8004"
+   environment:
+     - DATABASE_URL=postgresql://casino_user:casino_password@analytics-postgres:5432/analytics_db
+   depends_on:
+     analytics-postgres:
+       condition: service_healthy
+   networks:
+     - casino-network
+  prometheus:
+   image: prom/prometheus:latest
+   ports:
+     - "9090:9090"
+   volumes:
+     - ./prometheus.yml:/etc/prometheus/prometheus.yml
+   command:
+     - '--config.file=/etc/prometheus/prometheus.yml'
+     - '--storage.tsdb.path=/prometheus'
+     - '--web.console.libraries=/etc/prometheus/console_libraries'
+     - '--web.console.templates=/etc/prometheus/console_templates'
+     - '--storage.tsdb.retention.time=200h'
+     - '--web.enable-lifecycle'
+   networks:
+     - casino-network
+  grafana:
+   image: grafana/grafana:latest
+   ports:
+     - "3000:3000"
+   environment:
+     - GF_SECURITY_ADMIN_PASSWORD=admin123
+   volumes:
+     - ./grafana/dashboards:/var/lib/grafana/dashboards
+     - ./grafana/provisioning:/etc/grafana/provisioning
+   depends_on:
+     - prometheus
+   networks:
+     - casino-network
+
+
+
+
 
 volumes:
   auth_postgres_data:
   wallet_postgres_data:
   game_postgres_data:
+  analytics_postgres_data:
   redis_data:
+  
 
 networks:
   casino-network:
