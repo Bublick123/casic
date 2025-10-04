@@ -315,6 +315,53 @@
           "disable_host_sanitize": false
         }
       ]
+    },
+    {
+      "endpoint": "/notifications/send",
+      "method": "POST", 
+      "backend": [
+        {
+          "url_pattern": "/notifications/send",
+          "host": ["http://notification-service:8005"]
+        }
+      ]
+    },
+    {
+      "endpoint": "/notifications/user/{user_id}",
+      "method": "GET", 
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/notifications/user/{user_id}",
+          "host": ["http://notification-service:8005"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/notifications/trigger/win",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/notifications/trigger/win", 
+          "host": ["http://notification-service:8005"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/notifications/health",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/notifications/health",
+          "host": ["http://notification-service:8005"],
+          "disable_host_sanitize": false
+        }
+      ]
     }
   ]
 }

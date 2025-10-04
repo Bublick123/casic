@@ -361,7 +361,19 @@ async def spin_roulette(
                     print(f"Payout successful for user {bet.user_id}: {payout_amount}") 
                 except Exception as e:
                     print(f"Error processing payout for user {bet.user_id}: {str(e)}")
-    
+                # После определения выигрыша в рулетке
+            try:
+                async with httpx.AsyncClient() as client:
+                    await client.post(
+                        "http://notification-service:8005/notifications/trigger/win",
+                        json={
+                            "user_id": bet.user_id,
+                            "amount": payout_amount, 
+                            "game_type": "roulette"
+                        }
+                    )
+            except Exception as e:
+                print(f"Notification service error: {str(e)}")
     db.commit()
     
     return {

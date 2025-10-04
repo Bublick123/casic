@@ -133,20 +133,20 @@ async def start_blackjack(
     db.add(game)
     db.commit()
     db.refresh(game)
-    
+ 
     return BlackjackGameResponse(
-        id=game.id,
-        user_id=game.user_id,
-        bet_amount=game.bet_amount,
+        id=game.id, # type: ignore
+        user_id=game.user_id,# pyright: ignore[reportArgumentType]
+        bet_amount=game.bet_amount,# pyright: ignore[reportArgumentType]
         status=game.status.value,
-        player_cards=game.player_cards,
-        player_score=game.player_score,
-        dealer_cards=game.dealer_cards,
-        dealer_score=game.dealer_score,
-        win_amount=game.win_amount,
-        is_winner=game.is_winner,
-        is_push=game.is_push,
-        created_at=game.created_at
+        player_cards=game.player_cards, # pyright: ignore[reportArgumentType]
+        player_score=game.player_score,# pyright: ignore[reportArgumentType]
+        dealer_cards=game.dealer_cards,# pyright: ignore[reportArgumentType]
+        dealer_score=game.dealer_score,# pyright: ignore[reportArgumentType]
+        win_amount=game.win_amount,# pyright: ignore[reportArgumentType]
+        is_winner=game.is_winner,# pyright: ignore[reportArgumentType]
+        is_push=game.is_push,# pyright: ignore[reportArgumentType]
+        created_at=game.created_at# pyright: ignore[reportArgumentType]
     )
 
 @router.post("/{game_id}/action", response_model=BlackjackGameResponse)
@@ -167,78 +167,78 @@ async def player_action(
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
     
-    if game.status != BlackjackGameStatus.PLAYER_TURN:
+    if game.status != BlackjackGameStatus.PLAYER_TURN:# type: ignore
         raise HTTPException(status_code=400, detail="Not your turn")
     
     if action_data.action not in ["hit", "stand"]:
         raise HTTPException(status_code=400, detail="Invalid action. Use 'hit' or 'stand'")
     
     # Восстанавливаем использованные карты
-    used_cards = game.player_cards + [card for card in game.dealer_cards if card != "?"]
+    used_cards = game.player_cards + [card for card in game.dealer_cards if card != "?"]# type: ignore
     
     if action_data.action == "hit":
         # Игрок берет карту
-        new_card = deal_card(used_cards)
+        new_card = deal_card(used_cards)# type: ignore
         game.player_cards.append(new_card)
-        game.player_score = calculate_score(game.player_cards)
+        game.player_score = calculate_score(game.player_cards)# type: ignore
         
         # Проверяем перебор
-        if game.player_score > 21:
-            game.status = BlackjackGameStatus.FINISHED
-            game.is_winner = False
-            game.win_amount = 0.0
+        if game.player_score > 21:# type: ignore
+            game.status = BlackjackGameStatus.FINISHED# type: ignore
+            game.is_winner = False# type: ignore
+            game.win_amount = 0.0# type: ignore
             
     else:  # stand
         # Ход дилера
-        game.status = BlackjackGameStatus.DEALER_TURN
-        await dealer_turn(game, used_cards, authorization)
+        game.status = BlackjackGameStatus.DEALER_TURN# type: ignore
+        await dealer_turn(game, used_cards, authorization)# type: ignore
     
     db.commit()
     db.refresh(game)
     
     return BlackjackGameResponse(
-        id=game.id,
-        user_id=game.user_id,
-        bet_amount=game.bet_amount,
+        id=game.id,# type: ignore
+        user_id=game.user_id,# type: ignore
+        bet_amount=game.bet_amount,# type: ignore
         status=game.status.value,
-        player_cards=game.player_cards,
-        player_score=game.player_score,
-        dealer_cards=game.dealer_cards,
-        dealer_score=game.dealer_score,
-        win_amount=game.win_amount,
-        is_winner=game.is_winner,
-        is_push=game.is_push,
-        created_at=game.created_at
+        player_cards=game.player_cards,# type: ignore
+        player_score=game.player_score,# type: ignore
+        dealer_cards=game.dealer_cards,# type: ignore
+        dealer_score=game.dealer_score,# type: ignore
+        win_amount=game.win_amount,# type: ignore
+        is_winner=game.is_winner,# type: ignore
+        is_push=game.is_push,# type: ignore
+        created_at=game.created_at# type: ignore
     )
 
 async def dealer_turn(game: BlackjackGame, used_cards: List[str], authorization: str):
     """Логика хода дилера"""
     # Открываем вторую карту дилера
     if "?" in game.dealer_cards:
-        game.dealer_cards[1] = deal_card(used_cards)
-        game.dealer_score = calculate_score(game.dealer_cards)
+        game.dealer_cards[1] = deal_card(used_cards)# type: ignore
+        game.dealer_score = calculate_score(game.dealer_cards)# type: ignore
     
     # Дилер берет карты пока счет < 17
-    while game.dealer_score < 17:
+    while game.dealer_score < 17:# type: ignore
         new_card = deal_card(used_cards)
         game.dealer_cards.append(new_card)
-        game.dealer_score = calculate_score(game.dealer_cards)
+        game.dealer_score = calculate_score(game.dealer_cards)# type: ignore
     
     # Определяем победителя
-    game.status = BlackjackGameStatus.FINISHED
+    game.status = BlackjackGameStatus.FINISHED# type: ignore
     await determine_winner(game, authorization)  # ← передаем authorization
 
-async def determine_winner(game: BlackjackGame, authorization: str = None):
+async def determine_winner(game: BlackjackGame, authorization: str = None):# type: ignore
     """Определяет победителя и выплачивает выигрыш"""
     player_score = game.player_score
     dealer_score = game.dealer_score
     
     # Проверяем условия
-    if player_score > 21:
+    if player_score > 21:# type: ignore
         # Игрок перебрал
-        game.is_winner = False
-        game.win_amount = 0.0
-    elif dealer_score > 21:
+        game.is_winner = False# type: ignore
+        game.win_amount = 0.0# type: ignore
+    elif dealer_score > 21:# type: ignore
         # Дилер перебрал
         game.is_winner = True
         game.win_amount = game.bet_amount * 2  # Выигрыш 1:1
@@ -261,29 +261,45 @@ async def determine_winner(game: BlackjackGame, authorization: str = None):
         
         # Выплачиваем через Wallet Service
         async with httpx.AsyncClient() as client:
-            try:
-                wallet_response = await client.post(
-                    "http://wallet-service:8000/graphql",
-                    json={
-                        "query": f"""
-                        mutation {{
-                            createTransaction(type: "win", amount: {payout_amount}) {{
-                                ... on TransactionSuccess {{
-                                    transaction {{ id amount }}
-                                }}
-                                ... on TransactionError {{
-                                    message
-                                }}
+        try:
+            wallet_response = await client.post(
+                "http://wallet-service:8000/graphql",
+                json={
+                    "query": f"""
+                    mutation {{
+                        createTransaction(type: "win", amount: {payout_amount}) {{
+                            ... on TransactionSuccess {{
+                                transaction {{ id amount }}
+                            }}
+                            ... on TransactionError {{
+                                message
                             }}
                         }}
-                        """
-                    },
-                    headers={"Authorization": authorization}
-                )
-                print(f"Payout successful: {payout_amount}$")
-            except Exception as e:
-                print(f"Error processing payout: {str(e)}")
+                    }}
+                    """
+                },
+                headers={"Authorization": authorization}
+            )
+            print(f"Payout successful: {payout_amount}$")
+        except Exception as e:
+            print(f"Error processing payout: {str(e)}")
 
+    # 2. ПОТОМ отправляем уведомление (ОТДЕЛЬНЫЙ БЛОК!)
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                "http://notification-service:8005/notifications/trigger/win",
+                json={
+                    "user_id": game.user_id,
+                    "amount": payout_amount,  # используем уже вычисленную переменную
+                    "game_type": "blackjack"
+                },
+                timeout=2.0
+            )
+            print(f"Win notification sent for user {game.user_id}")
+    except Exception as e:
+        print(f"Notification service error: {str(e)}")
+        
 @router.get("/{game_id}", response_model=BlackjackGameResponse)
 async def get_blackjack_game(
     game_id: int,

@@ -116,7 +116,20 @@ async def spin_slots(
                 )
             except Exception as e:
                 print(f"Error processing win payout: {str(e)}")
-    
+    try:
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                "http://notification-service:8005/notifications/trigger/win",
+                json={
+                    "user_id": user_id,  
+                    "amount": win_amount,  
+                    "game_type": "slots"   
+                },
+                timeout=2.0
+             )
+            print(f"Win notification sent for user {user_id}")
+    except Exception as e:
+         print(f"Notification service error: {str(e)}")   
     # 6. Сохраняем игру в БД
     slot_game = SlotGame(
         user_id=user_id,
