@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Управление пользователями - Casino Admin</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background-color: #f5f6fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .users-table { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ecf0f1; }
+        th { background: #f8f9fa; font-weight: 600; color: #2c3e50; }
+        .status-active { color: #27ae60; font-weight: 500; }
+        .status-blocked { color: #e74c3c; font-weight: 500; }
+        .btn { padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .btn-block { background: #e74c3c; color: white; }
+        .btn-unblock { background: #27ae60; color: white; }
+        .btn-edit { background: #3498db; color: white; }
+        .role-admin { background: #9b59b6; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px; }
+        .role-user { background: #3498db; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👥 Управление пользователями</h1>
+        <p>Блокировка и управление пользователями системы</p>
+    </div>
+
+    <div class="users-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Логин</th>
+                    <th>Email</th>
+                    <th>Роль</th>
+                    <th>Статус</th>
+                    <th>Дата регистрации</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.login }}</td>
+                    <td>{{ user.email }}</td>
+                    <td><span class="role-{{ user.role }}">{{ user.role }}</span></td>
+                    <td class="status-{{ user.status }}">{{ user.status }}</td>
+                    <td>{{ user.created_at }}</td>
+                    <td>
+                        {% if user.status == 'active' %}
+                        <button class="btn btn-block" onclick="toggleUser({{ user.id }}, 'block')">🚫 Заблокировать</button>
+                        {% else %}
+                        <button class="btn btn-unblock" onclick="toggleUser({{ user.id }}, 'unblock')">✅ Разблокировать</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function toggleUser(userId, action) {
+            if (confirm(`${action === 'block' ? 'Заблокировать' : 'Разблокировать'} пользователя?`)) {
+                try {
+                    const token = localStorage.getItem('admin_token');
+                    const response = await fetch(`/admin/users/${userId}/toggle-block`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Ошибка при выполнении действия');
+                    }
+                } catch (error) {
+                    alert('Ошибка соединения');
+                }
+            }
+        }
+        
+        // Проверка аутентификации
+        if (!localStorage.getItem('admin_token')) {
+            window.location.href = '/admin/login';
+        }
+    </script>
+</body>
+</html>

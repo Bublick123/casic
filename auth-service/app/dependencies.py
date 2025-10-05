@@ -53,17 +53,16 @@ async def get_current_user(
 
 # зависимость для админов
 async def get_admin_user(
-    current_user: models.User = Depends(get_current_user),
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
-):
-    # Загружаем пользователя из БД с актуальными данными
-    db_user = db.query(models.User).filter(
-        models.User.id == current_user.id
-    ).first()
+) -> models.User:
+    """Получает текущего пользователя и проверяет что он админ"""
+    user = await get_current_user(token, db)
     
-    if not db_user or db_user.role != "admin":  # ← Теперь правильно!
+    if user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
         )
-    return db_user
+    
+    return user

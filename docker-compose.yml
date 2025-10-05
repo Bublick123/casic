@@ -241,7 +241,39 @@ services:
         condition: service_healthy
     networks:
       - casino-network
+  admin-postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: admin_db
+      POSTGRES_USER: casino_user
+      POSTGRES_PASSWORD: casino_password
+    ports:
+      - "5437:5432"  # 🚨 МЕНЯЕМ НА 5437
+    volumes:
+      - admin_postgres_data:/var/lib/postgresql/data  # 🚨 ДОБАВЛЯЕМ VOLUME
+    networks:
+      - casino-network
+    healthcheck:  # 🚨 ДОБАВЛЯЕМ HEALTHCHECK
+      test: ["CMD-SHELL", "pg_isready -U casino_user -d admin_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Admin Service
+  admin-service:
+    build: ./admin-service
+    ports:
+      - "8006:8006"
+    environment:
+      DATABASE_URL: postgresql://casino_user:casino_password@admin-postgres:5432/admin_db  # 🚨 ВНУТРИ ДОКЕРА ПОРТ 5432!
+      AUTH_SERVICE_URL: http://auth-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      ANALYTICS_SERVICE_URL: http://analytics-service:8004
+    depends_on:
+      admin-postgres:
+        condition: service_healthy  # 🚨 ДОБАВЛЯЕМ HEALTHCHECK
+    networks:
+      - casino-network
 
 
 volumes:
@@ -250,6 +282,7 @@ volumes:
   game_postgres_data:
   analytics_postgres_data:
   notification_postgres_data:
+  admin_postgres_data:
   redis_data:
   
 

@@ -261,28 +261,28 @@ async def determine_winner(game: BlackjackGame, authorization: str = None):# typ
         
         # Выплачиваем через Wallet Service
         async with httpx.AsyncClient() as client:
-        try:
-            wallet_response = await client.post(
-                "http://wallet-service:8000/graphql",
-                json={
-                    "query": f"""
-                    mutation {{
-                        createTransaction(type: "win", amount: {payout_amount}) {{
-                            ... on TransactionSuccess {{
-                                transaction {{ id amount }}
-                            }}
-                            ... on TransactionError {{
-                                message
+            try:
+                wallet_response = await client.post(
+                    "http://wallet-service:8000/graphql",
+                    json={
+                        "query": f"""
+                        mutation {{
+                            createTransaction(type: "win", amount: {payout_amount}) {{
+                                ... on TransactionSuccess {{
+                                    transaction {{ id amount }}
+                                }}
+                                ... on TransactionError {{
+                                    message
+                                }}
                             }}
                         }}
-                    }}
-                    """
-                },
-                headers={"Authorization": authorization}
-            )
-            print(f"Payout successful: {payout_amount}$")
-        except Exception as e:
-            print(f"Error processing payout: {str(e)}")
+                        """
+                    },
+                    headers={"Authorization": authorization}
+                )
+                print(f"Payout successful: {payout_amount}$")
+            except Exception as e:
+                print(f"Error processing payout: {str(e)}")
 
     # 2. ПОТОМ отправляем уведомление (ОТДЕЛЬНЫЙ БЛОК!)
     try:

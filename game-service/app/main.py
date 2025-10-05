@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
 import logging
 from .database import engine, Base
 
@@ -13,6 +16,8 @@ app = FastAPI(
     description="Microservice for casino games", 
     version="1.0.0"
 )
+
+templates = Jinja2Templates(directory="app/templates")
 
 @app.get("/health")
 async def health_check():
@@ -32,6 +37,15 @@ app.include_router(slots_router)
 #БлэкДжек
 from .blackjack import router as blackjack_router
 app.include_router(blackjack_router)
+
+# Minimal UI endpoints
+@app.get("/ui/login", response_class=HTMLResponse)
+async def ui_login(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/ui/games", response_class=HTMLResponse)
+async def ui_games(request: Request):
+    return templates.TemplateResponse("games.html", {"request": request})
 
 if __name__ == "__main__":
     import uvicorn
