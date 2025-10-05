@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Транзакции - Casino Admin</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background-color: #f5f6fa; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .nav { margin-top: 15px; }
+        .nav-link { color: white; text-decoration: none; margin-right: 20px; padding: 8px 15px; border-radius: 5px; }
+        .nav-link:hover { background: rgba(255,255,255,0.2); }
+        .nav-link.active { background: rgba(255,255,255,0.3); }
+        .logout { background: rgba(231, 76, 60, 0.8); }
+        
+        .transactions-table { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ecf0f1; }
+        th { background: #f8f9fa; font-weight: 600; color: #2c3e50; }
+        .type-deposit { color: #27ae60; font-weight: 500; }
+        .type-withdraw { color: #e74c3c; font-weight: 500; }
+        .type-game_bet { color: #e67e22; font-weight: 500; }
+        .type-game_win { color: #27ae60; font-weight: 500; }
+        .status-completed { color: #27ae60; }
+        .status-pending { color: #f39c12; }
+        .amount-positive { color: #27ae60; }
+        .amount-negative { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 Управление транзакциями</h1>
+        <p>Просмотр и управление финансовыми операциями</p>
+        <div class="nav">
+            <a href="/admin/dashboard" class="nav-link">📊 Дашборд</a>
+            <a href="/admin/users" class="nav-link">👥 Пользователи</a>
+            <a href="/admin/transactions" class="nav-link active">💰 Транзакции</a>
+            <button onclick="logout()" class="nav-link logout">🚪 Выйти</button>
+        </div>
+    </div>
+
+    <div class="transactions-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>User ID</th>
+                    <th>Тип</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.id }}</td>
+                    <td>{{ transaction.user_id }}</td>
+                    <td class="type-{{ transaction.type }}">
+                        {% if transaction.type == 'deposit' %}📥 Пополнение
+                        {% elif transaction.type == 'withdraw' %}📤 Вывод
+                        {% elif transaction.type == 'game_bet' %}🎮 Ставка
+                        {% elif transaction.type == 'game_win' %}🎉 Выигрыш
+                        {% else %}{{ transaction.type }}{% endif %}
+                    </td>
+                    <td class="{% if transaction.amount >= 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                        ${{ transaction.amount }}
+                    </td>
+                    <td class="status-{{ transaction.status }}">
+                        {% if transaction.status == 'completed' %}✅ Завершено
+                        {% elif transaction.status == 'pending' %}⏳ Ожидание
+                        {% else %}{{ transaction.status }}{% endif %}
+                    </td>
+                    <td>{{ transaction.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function logout() {
+            localStorage.removeItem('admin_token');
+            window.location.href = '/admin/login';
+        }
+        
+        // Проверка аутентификации
+        if (!localStorage.getItem('admin_token')) {
+            window.location.href = '/admin/login';
+        }
+    </script>
+</body>
+</html>

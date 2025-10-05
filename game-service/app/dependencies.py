@@ -17,14 +17,14 @@ async def verify_token(authorization: str = Header(None)) -> int:
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(
-                f"{AUTH_SERVICE_URL}/verify",
+                f"{AUTH_SERVICE_URL}/users/me",
                 headers={"Authorization": f"Bearer {token}"},
                 timeout=5.0
             )
             
             if response.status_code == 200:
                 user_data = response.json()
-                return user_data["id"]
+                return user_data.get("id") or user_data.get("user_id")
             else:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,

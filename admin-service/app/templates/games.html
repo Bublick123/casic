@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Статистика игр</title>
+</head>
+<body>
+    <h1>🎮 Статистика игр</h1>
+    <div id="gamesStats">Загрузка...</div>
+
+    <script>
+        async function loadGamesStats() {
+            const response = await fetch('/admin/games/stats');
+            const stats = await response.json();
+            
+            document.getElementById('gamesStats').innerHTML = `
+                <pre>${JSON.stringify(stats, null, 2)}</pre>
+            `;
+        }
+        
+        loadGamesStats();
+    </script>
+</body>
+</html>

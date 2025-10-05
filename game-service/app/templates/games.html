@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f6fa; padding: 20px; }
+        .toolbar { display: flex; gap: 10px; margin-bottom: 16px; }
+        button { padding: 10px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .primary { background: #667eea; color: white; }
+        .danger { background: #e74c3c; color: white; margin-left: auto; }
+        pre { background: white; padding: 12px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    </style>
+    <script>
+        const gw = 'http://localhost:8090';
+        let token = null;
+        function ensureAuth() {
+            token = localStorage.getItem('token');
+            if (!token) { window.location.href = '/ui/login'; return false; }
+            return true;
+        }
+        function authHeaders() { return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
+
+        async function startRoulette() {
+            if (!ensureAuth()) return;
+            const res = await fetch(gw + '/games/roulette/games', { method: 'POST', headers: authHeaders(), body: JSON.stringify({}) });
+            document.getElementById('out').textContent = await res.text();
+        }
+        async function listRoulette() {
+            if (!ensureAuth()) return;
+            const res = await fetch(gw + '/games/roulette/games', { headers: authHeaders() });
+            document.getElementById('out').textContent = await res.text();
+        }
+        async function spinRoulette() {
+            if (!ensureAuth()) return;
+            const gameId = prompt('Game ID to spin:');
+            if (!gameId) return;
+            const res = await fetch(gw + `/games/roulette/games/${gameId}/spin`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({}) });
+            document.getElementById('out').textContent = await res.text();
+        }
+        async function slotsSpin() {
+            if (!ensureAuth()) return;
+            const res = await fetch(gw + '/games/slots/spin', { method: 'POST', headers: authHeaders(), body: JSON.stringify({ bet: 1 }) });
+            document.getElementById('out').textContent = await res.text();
+        }
+        async function bjStart() {
+            if (!ensureAuth()) return;
+            const res = await fetch(gw + '/games/blackjack/start', { method: 'POST', headers: authHeaders(), body: JSON.stringify({}) });
+            document.getElementById('out').textContent = await res.text();
+        }
+        async function bjAction() {
+            if (!ensureAuth()) return;
+            const gameId = prompt('Blackjack Game ID:');
+            const action = prompt('Action (hit/stand/double):');
+            const res = await fetch(gw + `/games/blackjack/${gameId}/action`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ action }) });
+            document.getElementById('out').textContent = await res.text();
+        }
+        function logout() { localStorage.removeItem('token'); window.location.href = '/ui/login'; }
+        document.addEventListener('DOMContentLoaded', ensureAuth);
+    </script>
+</head>
+<body>
+    <div class="toolbar">
+        <button class="primary" onclick="startRoulette()">Start Roulette</button>
+        <button class="primary" onclick="listRoulette()">List Roulette</button>
+        <button class="primary" onclick="spinRoulette()">Spin Roulette</button>
+        <button class="primary" onclick="slotsSpin()">Spin Slots</button>
+        <button class="primary" onclick="bjStart()">Start Blackjack</button>
+        <button class="primary" onclick="bjAction()">BJ Action</button>
+        <button class="danger" onclick="logout()">Logout</button>
+    </div>
+    <pre id="out">Ready.</pre>
+</body>
+</html>
+

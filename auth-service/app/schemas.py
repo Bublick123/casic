@@ -19,7 +19,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     last_login: Optional[datetime] = None 
     created_at: datetime
-    role: str
+    role: str = "user"
     email_verified: bool
     class Config:
         from_attributes = True

@@ -7,6 +7,19 @@
       "level": "DEBUG",
       "prefix": "[KRAKEND]",
       "stdout": true
+    },
+    "github_com/devopsfaith/krakend-cors": {
+      "allow_origins": ["*", "http://localhost:8006", "http://localhost:8090", "http://localhost:8003"],
+      "allow_methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      "allow_headers": ["*"],
+      "expose_headers": ["*"],
+      "allow_credentials": true,
+      "max_age": "12h"
+    },
+    "github.com/devopsfaith/krakend-httpsecure": {
+      "allowed_hosts": [],
+      "ssl_proxy_headers": {},
+      "ssl_redirect": false
     }
   },
   "endpoints": [
@@ -359,6 +372,223 @@
         {
           "url_pattern": "/notifications/health",
           "host": ["http://notification-service:8005"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },{
+      "endpoint": "/admin/login",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/login",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },{
+      "endpoint": "/admin/logout",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/logout",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },{
+      "endpoint": "/admin/verify",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/verify",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+
+    
+    {
+      "endpoint": "/admin/dashboard",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/dashboard",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+
+    
+    {
+      "endpoint": "/admin/users",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/users",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/admin/users/{user_id}/block",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/users/{user_id}/block",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/admin/users/{user_id}/unblock",
+      "method": "POST",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/users/{user_id}/unblock",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+
+    
+    {
+      "endpoint": "/admin/games/stats",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/games/stats",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/admin/games",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/games",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+
+    
+    {
+      "endpoint": "/admin/financial/stats",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/financial/stats",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/admin/transactions",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/transactions",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+
+    
+    {
+      "endpoint": "/admin/analytics/revenue",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/analytics/revenue",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/admin/analytics/active-users",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/analytics/active-users",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+
+    
+    {
+      "endpoint": "/admin/system/health",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/system/health",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+    {
+      "endpoint": "/admin/system/services",
+      "method": "GET",
+      "input_headers": ["*"],
+      "output_headers": ["*"],
+      "backend": [
+        {
+          "url_pattern": "/admin/system/services",
+          "host": ["http://admin-service:8006"],
+          "disable_host_sanitize": false
+        }
+      ]
+    },
+
+    
+    {
+      "endpoint": "/admin/health",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "/health",
+          "host": ["http://admin-service:8006"],
           "disable_host_sanitize": false
         }
       ]

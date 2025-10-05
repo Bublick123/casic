@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f6fa; margin: 0; padding: 0; }
+        .container { max-width: 360px; margin: 80px auto; background: white; padding: 24px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        h2 { margin: 0 0 16px; color: #2c3e50; }
+        .field { margin-bottom: 12px; }
+        label { display: block; font-size: 13px; color: #7f8c8d; margin-bottom: 6px; }
+        input { width: 100%; padding: 10px 12px; border: 1px solid #ecf0f1; border-radius: 6px; font-size: 14px; }
+        button { width: 100%; padding: 10px 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button:hover { background: #5568d6; }
+        .error { margin-top: 10px; color: #e74c3c; font-size: 13px; }
+    </style>
+    <script>
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('login').value.trim();
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = '';
+
+            try {
+                const resp = await fetch('http://localhost:8090/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: username, password })
+                });
+
+                if (!resp.ok) {
+                    const msg = await resp.text();
+                    throw new Error(msg || ('Login failed: ' + resp.status));
+                }
+
+                const data = await resp.json();
+                const token = data.access_token || data.token;
+                if (!token) {
+                    throw new Error('No token in response');
+                }
+                localStorage.setItem('admin_token', token);
+
+                // Optional: verify admin role through admin-service
+                const verify = await fetch('/admin/verify', { headers: { 'Authorization': 'Bearer ' + token } });
+                if (!verify.ok) {
+                    throw new Error('Not an admin');
+                }
+
+                window.location.href = '/admin/dashboard';
+            } catch (err) {
+                errorEl.textContent = err.message || 'Unexpected error';
+            }
+            return false;
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <script>
+        // If token exists, verify it before redirecting; clear invalid tokens
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('admin_token');
+            if (!token) return;
+            try {
+                const resp = await fetch('/admin/verify', { headers: { 'Authorization': 'Bearer ' + token } });
+                const contentType = resp.headers.get('content-type') || '';
+                if (resp.ok && !resp.redirected && contentType.includes('application/json')) {
+                    const data = await resp.json().catch(() => null);
+                    if (data && data.ok) {
+                        window.location.href = '/admin/dashboard';
+                        return;
+                    }
+                }
+            } catch (_) {}
+            // Token invalid or redirected – remove and stay on login
+            localStorage.removeItem('admin_token');
+        });
+    </script>
+    </head>
+<body>
+    <div class="container">
+        <h2>Admin Login</h2>
+        <form method="post" action="#" onsubmit="return handleLogin(event)">
+            <div class="field">
+                <label for="login">Login</label>
+                <input id="login" name="login" type="text" autocomplete="username" required />
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required />
+            </div>
+            <button type="submit">Sign in</button>
+            <div id="error" class="error"></div>
+        </form>
+    </div>
+</body>
+</html>

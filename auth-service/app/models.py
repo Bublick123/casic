@@ -13,7 +13,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)  # Дата регистрации пользователя
     login_count = Column(Integer, default=0)               # Счетчик логинов пользователя
     last_login = Column(DateTime, nullable=True)           # Последний логин пользователя
-    role = Column(String, default="user")  # ← Роль пользователя
+    role = Column(String, default="user")  # user, admin
     email_verified = Column(Boolean, default=False)  # Подтвержден ли email
     verification_code = Column(String, nullable=True) # Код подтверждения
 
